@@ -1,0 +1,307 @@
+{
+  "description": "Synthetic support tickets for eval/training of the triage/retrieval/drafting/escalation agent pipeline. Not real customer data.",
+  "categories": ["webhooks", "payments_charges", "connect_payouts", "api_idempotency", "billing_subscriptions", "refunds_disputes", "auth_keys", "tax", "radar_fraud", "general"],
+  "urgency_levels": ["low", "medium", "high", "critical"],
+  "tickets": [
+    {
+      "id": "T001",
+      "subject": "Webhook signature verification keeps failing",
+      "body": "I'm getting 'No signatures found matching the expected signature for payload' on every webhook event since yesterday. Using the raw request body before parsing JSON, and the signing secret matches the dashboard. What am I missing?",
+      "category": "webhooks",
+      "urgency": "high",
+      "escalate": false,
+      "doc_topic": "webhook signing secret rotation / raw body middleware ordering",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T002",
+      "subject": "Duplicate charges appearing for the same order",
+      "body": "A customer was charged twice for order #4471. We retried the payment intent creation after a timeout but didn't pass an idempotency key. Is there a way to prevent this going forward and can you help identify duplicate PaymentIntents?",
+      "category": "api_idempotency",
+      "urgency": "high",
+      "escalate": false,
+      "doc_topic": "idempotency keys for PaymentIntent creation",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T003",
+      "subject": "How do I test webhooks locally?",
+      "body": "New to the platform, trying to develop locally before deploying. What's the recommended way to receive webhook events on localhost during development?",
+      "category": "webhooks",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "Stripe CLI webhook forwarding",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T004",
+      "subject": "Connected account payouts stuck in pending for 2 weeks",
+      "body": "One of our Connect platform's sellers has payouts stuck in 'pending' status for 14 days. Their account shows verified, but funds aren't releasing. This is affecting their livelihood, need urgent help.",
+      "category": "connect_payouts",
+      "urgency": "critical",
+      "escalate": true,
+      "doc_topic": "payout schedule delays / account verification holds",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T005",
+      "subject": "Can I change my subscription billing cycle anchor?",
+      "body": "We want to move all our customers' billing dates to the 1st of the month instead of their signup date. Is proration handled automatically if we update the billing_cycle_anchor?",
+      "category": "billing_subscriptions",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "subscription billing_cycle_anchor and proration behavior",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T006",
+      "subject": "Accidentally committed our secret key to a public GitHub repo",
+      "body": "We just realized our live secret key (sk_live_...) was committed to a public repository about an hour ago. We've since deleted it but it may have been exposed. Please advise immediately.",
+      "category": "auth_keys",
+      "urgency": "critical",
+      "escalate": true,
+      "doc_topic": "API key exposure / rotating compromised secret keys",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T007",
+      "subject": "Refund shows as succeeded but customer says they haven't received it",
+      "body": "Refund re_1AbCdE was marked 'succeeded' 5 business days ago. Customer's bank shows no record of the credit. What's the typical timeline and how do we investigate on our end?",
+      "category": "refunds_disputes",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "refund processing timelines by payment method",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T008",
+      "subject": "Dispute filed as fraudulent but we have delivery proof",
+      "body": "A customer disputed a $340 charge claiming they never received the product, but we have signed delivery confirmation. How do we submit evidence and what's our deadline?",
+      "category": "refunds_disputes",
+      "urgency": "high",
+      "escalate": false,
+      "doc_topic": "dispute evidence submission and deadlines",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T009",
+      "subject": "What's the difference between test mode and live mode API keys?",
+      "body": "Just setting up integration, want to confirm: do test mode transactions ever touch real money, and is data shared between test and live mode?",
+      "category": "auth_keys",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "test vs live mode isolation",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T010",
+      "subject": "Radar flagged a legitimate high-value customer as fraud",
+      "body": "One of our long-time enterprise customers had a $12,000 charge blocked by Radar. They're frustrated and threatening to switch providers. Can we whitelist them or adjust the risk rules?",
+      "category": "radar_fraud",
+      "urgency": "high",
+      "escalate": true,
+      "doc_topic": "Radar custom rules and allow lists",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T011",
+      "subject": "Do I need to collect VAT for EU customers?",
+      "body": "We're a US-based SaaS company starting to sell to customers in Germany and France. Do we need to handle VAT ourselves or can Stripe Tax calculate and collect it for us?",
+      "category": "tax",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "Stripe Tax automatic calculation for digital goods",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T012",
+      "subject": "PaymentIntent stuck in 'requires_action' after 3DS",
+      "body": "Customer completed 3D Secure authentication but the PaymentIntent still shows requires_action. Confirmed on multiple browsers. This is blocking checkout for several customers today.",
+      "category": "payments_charges",
+      "urgency": "high",
+      "escalate": false,
+      "doc_topic": "3DS authentication flow and confirming PaymentIntents client-side",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T013",
+      "subject": "How do I upgrade my account for higher processing volume?",
+      "body": "We're growing fast and want to know if there are volume-based pricing tiers or if we need to talk to sales for a custom plan.",
+      "category": "general",
+      "urgency": "low",
+      "escalate": true,
+      "doc_topic": "custom pricing / sales contact routing",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T014",
+      "subject": "Subscription trial ending but customer wasn't charged",
+      "body": "A batch of 15 customers had their trial period end yesterday but no invoice or charge was created. Their subscriptions still show 'trialing' status. Is this a webhook processing delay?",
+      "category": "billing_subscriptions",
+      "urgency": "high",
+      "escalate": false,
+      "doc_topic": "trial_end webhook events and invoice generation timing",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T015",
+      "subject": "Can't find where to download invoice PDFs in bulk",
+      "body": "Need to export all invoices from last quarter as PDFs for our accounting team. Is there a bulk export option in the dashboard or do we need the API?",
+      "category": "general",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "invoice PDF export via API vs dashboard",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T016",
+      "subject": "Connect platform - how are our fees calculated on split payments?",
+      "body": "We take an application fee on each transaction processed through connected accounts. Trying to understand exactly how Stripe's own processing fee interacts with our application_fee_amount.",
+      "category": "connect_payouts",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "application fees and fee responsibility in Connect",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T017",
+      "subject": "Getting rate limited during a bulk customer import",
+      "body": "Migrating 50,000 customers from our old provider and hitting 429 errors constantly, even with delays between requests. What's the actual rate limit and is there a bulk import tool?",
+      "category": "api_idempotency",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "API rate limits and bulk data migration strategies",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T018",
+      "subject": "Chargeback ratio getting close to a warning threshold",
+      "body": "We just got an email saying our dispute rate is approaching Stripe's monitoring threshold. What happens if we cross it, and what can we do right now to bring it down?",
+      "category": "refunds_disputes",
+      "urgency": "high",
+      "escalate": true,
+      "doc_topic": "dispute/chargeback monitoring program consequences",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T019",
+      "subject": "Webhook events arriving out of order",
+      "body": "We're seeing 'invoice.paid' arrive before 'invoice.created' occasionally, which breaks our internal state machine. Is event ordering guaranteed, and if not how should we handle this?",
+      "category": "webhooks",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "webhook delivery ordering guarantees (or lack thereof)",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T020",
+      "subject": "What happens to active subscriptions if we close our account?",
+      "body": "We're evaluating whether to shut down this product line. If we close the Stripe account, do active subscriptions cancel automatically or do we need to cancel them first?",
+      "category": "billing_subscriptions",
+      "urgency": "medium",
+      "escalate": true,
+      "doc_topic": "account closure and subscription/data handling implications",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T021",
+      "subject": "Simple question: does Stripe support Apple Pay?",
+      "body": "Considering switching to Stripe from a competitor. Do you support Apple Pay and Google Pay out of the box, or is that a separate integration?",
+      "category": "general",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "Payment Request Button / wallet support overview",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T022",
+      "subject": "Partial refund not reducing the amount available for future refunds",
+      "body": "Issued a $20 partial refund on a $100 charge, but the API still shows amount_refundable as if no refund happened. Is there caching involved or am I reading the wrong field?",
+      "category": "refunds_disputes",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "Charge object refund fields (amount_refunded vs amount)",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T023",
+      "subject": "Suspected unauthorized access to our Stripe dashboard",
+      "body": "We noticed a login from an unrecognized location and IP in our account activity log this morning. No changes were made that we can find, but we're concerned. What should we do immediately?",
+      "category": "auth_keys",
+      "urgency": "critical",
+      "escalate": true,
+      "doc_topic": "account security incident response / 2FA enforcement",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T024",
+      "subject": "Tax calculation seems wrong for a customer in Canada",
+      "body": "Stripe Tax calculated 5% GST for an Ontario customer, but shouldn't it be 13% HST for that province? Double checked the customer's address is correct in our system.",
+      "category": "tax",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "provincial tax rates and address validation for Stripe Tax",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T025",
+      "subject": "How long are old API request logs retained?",
+      "body": "Trying to debug an issue from 4 months ago and can't find the request in the dashboard logs anymore. How long is log retention and is there a way to get older logs?",
+      "category": "general",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "API request log retention period",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T026",
+      "subject": "Radar rule blocking all transactions from a specific country we operate in",
+      "body": "We legitimately do business in Nigeria but Radar's default rules seem to be blocking a high percentage of those transactions as high risk. Revenue impact is significant. Need this addressed today.",
+      "category": "radar_fraud",
+      "urgency": "critical",
+      "escalate": true,
+      "doc_topic": "Radar risk rules by country and custom rule tuning",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T027",
+      "subject": "Do I need a new webhook endpoint for each API version?",
+      "body": "We're planning to upgrade our API version. Will our existing webhook endpoint continue working, or do we need to create a new one pinned to the new version?",
+      "category": "api_idempotency",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "API versioning and webhook endpoint version pinning",
+      "difficulty": "medium"
+    },
+    {
+      "id": "T028",
+      "subject": "Connected account onboarding form keeps rejecting a valid SSN",
+      "body": "A seller on our Connect platform says their SSN is being rejected during identity verification despite being correct. They've tried 3 times. This is blocking their ability to receive payouts.",
+      "category": "connect_payouts",
+      "urgency": "high",
+      "escalate": true,
+      "doc_topic": "identity verification failures in Connect onboarding",
+      "difficulty": "hard"
+    },
+    {
+      "id": "T029",
+      "subject": "Where can I see a changelog of API breaking changes?",
+      "body": "Want to plan our upgrade path. Is there a page that lists what changed between API versions, specifically anything breaking?",
+      "category": "general",
+      "urgency": "low",
+      "escalate": false,
+      "doc_topic": "API version changelog / upgrade guide",
+      "difficulty": "easy"
+    },
+    {
+      "id": "T030",
+      "subject": "Recurring invoice failed payment - customer's card was fine",
+      "body": "An invoice for a subscription failed with 'card_declined' but the customer says they have plenty of balance and the same card works fine for other services. How do we get the actual decline reason?",
+      "category": "billing_subscriptions",
+      "urgency": "medium",
+      "escalate": false,
+      "doc_topic": "decline codes and reading detailed failure reasons on invoices",
+      "difficulty": "medium"
+    }
+  ]
+}
