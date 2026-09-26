@@ -5,11 +5,14 @@ Streamlit application displaying:
 2. Ticket Detail View with Full 4-Stage Agent Reasoning Trail
 3. Ground Truth Evaluation Strip (Pass/Fail against eval_rubric.md)
 4. Comprehensive Category-level Eval Benchmark Report
+
+Theme-adaptive (supports both Dark Mode and Light Mode seamlessly).
 """
 
 import json
 import os
 import sys
+import textwrap
 from datetime import datetime
 import streamlit as st
 
@@ -20,15 +23,16 @@ if BASE_DIR not in sys.path:
 
 from mcp_servers.ticket_server.server import get_ticket, list_tickets, update_ticket
 from orchestrator.pipeline import run_ticket_pipeline
+from evaluator import urgency_distance
 
 st.set_page_config(
-    page_title="Stripe Support Agent Console",
+    page_title="Stripe Support AI Console",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for dense, clean developer tool appearance
+# Custom theme-adaptive CSS (works in both Dark and Light modes)
 st.markdown(
     """
     <style>
@@ -43,54 +47,43 @@ st.markdown(
         font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
-        font-family: monospace;
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        letter-spacing: 0.5px;
     }
     .badge-critical {
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #f87171;
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.4);
     }
     .badge-high {
-        background-color: #ffedd5;
-        color: #9a3412;
-        border: 1px solid #fb923c;
+        background-color: rgba(249, 115, 22, 0.2);
+        color: #f97316;
+        border: 1px solid rgba(249, 115, 22, 0.4);
     }
     .badge-medium {
-        background-color: #fef9c3;
-        color: #854d0e;
-        border: 1px solid #facc15;
+        background-color: rgba(234, 179, 8, 0.2);
+        color: #eab308;
+        border: 1px solid rgba(234, 179, 8, 0.4);
     }
     .badge-low {
-        background-color: #f1f5f9;
-        color: #334155;
-        border: 1px solid #cbd5e1;
+        background-color: rgba(148, 163, 184, 0.2);
+        color: #94a3b8;
+        border: 1px solid rgba(148, 163, 184, 0.4);
     }
     .badge-escalated {
-        background-color: #fce7f3;
-        color: #9d174d;
-        border: 1px solid #f472b6;
+        background-color: rgba(236, 72, 153, 0.2);
+        color: #ec4899;
+        border: 1px solid rgba(236, 72, 153, 0.4);
     }
     .badge-pass {
-        background-color: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
+        background-color: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.4);
     }
     .badge-fail {
-        background-color: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fca5a5;
-    }
-    .stage-card {
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        padding: 14px;
-        margin-bottom: 12px;
-        background-color: #ffffff;
-    }
-    .metric-value {
-        font-family: monospace;
-        font-size: 1.4rem;
-        font-weight: 700;
+        background-color: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+        border: 1px solid rgba(239, 68, 68, 0.4);
     }
     </style>
     """,
@@ -274,68 +267,64 @@ else:
             trace = traces.get(selected_tid, {})
             pred = predictions.get(selected_tid, {})
 
-            # Top Header Bar
+            # Clean header with native Streamlit elements
             urgency_class = f"badge-{ticket['urgency']}"
-            escalated_badge = "<span class='badge badge-escalated'>ESCALATED</span>" if ticket.get("escalate") else ""
+            escalated_badge = "<span class='badge badge-escalated'>🚨 ESCALATED</span>" if ticket.get("escalate") else ""
 
-            st.markdown(
-                f"""
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 12px;">
-                    <div>
-                        <span class="mono" style="font-size: 1.3rem; font-weight: bold;">{ticket['id']}</span>
-                        <span class="badge {urgency_class}">{ticket['urgency']}</span>
-                        <span class="badge badge-low">{ticket['category']}</span>
-                        {escalated_badge}
-                    </div>
-                    <div class="mono" style="font-size: 0.85rem; color: #64748b;">
-                        Status: <b>{ticket.get('status', 'open').upper()}</b>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
+            header_html = textwrap.dedent(
+                f"""<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(148,163,184,0.3); padding-bottom:8px; margin-bottom:12px;">
+<div>
+<span class="mono" style="font-size:1.4rem; font-weight:700;">{ticket['id']}</span>&nbsp;
+<span class="badge {urgency_class}">{ticket['urgency']}</span>&nbsp;
+<span class="badge badge-low">{ticket['category']}</span>&nbsp;
+{escalated_badge}
+</div>
+<div class="mono" style="font-size:0.85rem; opacity:0.85;">
+Status: <b>{ticket.get('status', 'open').upper()}</b>
+</div>
+</div>"""
             )
+            st.markdown(header_html, unsafe_allow_html=True)
 
             st.markdown(f"**Subject:** {ticket['subject']}")
             with st.expander("Customer Ticket Body", expanded=False):
-                st.info(ticket["body"])
+                st.write(ticket["body"])
 
             # ---------------------------------------------------------
             # Eval Strip: Real pass/fail indicators against rubric
             # ---------------------------------------------------------
             st.markdown("##### 🎯 Rubric Evaluation Strip")
-            e1, e2, e3, e4 = st.columns(4)
+            with st.container(border=True):
+                e1, e2, e3, e4 = st.columns(4)
 
-            # 1. Category
-            cat_match = pred.get("category") == ticket["category"]
-            cat_badge = "<span class='badge badge-pass'>PASS</span>" if cat_match else "<span class='badge badge-fail'>FAIL</span>"
-            e1.markdown(f"**Category:** {cat_badge}<br><span class='mono' style='font-size:0.75rem'>{pred.get('category')}</span>", unsafe_allow_html=True)
+                # 1. Category
+                cat_match = pred.get("category") == ticket["category"]
+                cat_badge = "<span class='badge badge-pass'>PASS</span>" if cat_match else "<span class='badge badge-fail'>FAIL</span>"
+                e1.markdown(f"**Category:** {cat_badge}<br><span class='mono' style='font-size:0.8rem'>{pred.get('category')}</span>", unsafe_allow_html=True)
 
-            # 2. Urgency
-            from evaluator import urgency_distance
-            pred_urg = pred.get("urgency", ticket["urgency"])
-            u_dist = urgency_distance(ticket["urgency"], pred_urg)
-            if u_dist == 0:
-                urg_badge = "<span class='badge badge-pass'>EXACT</span>"
-            elif u_dist == 1:
-                urg_badge = "<span class='badge badge-pass'>±1 CLOSE</span>"
-            else:
-                urg_badge = "<span class='badge badge-fail'>SEVERE MISS</span>"
-            e2.markdown(f"**Urgency:** {urg_badge}<br><span class='mono' style='font-size:0.75rem'>{pred_urg}</span>", unsafe_allow_html=True)
+                # 2. Urgency
+                pred_urg = pred.get("urgency", ticket["urgency"])
+                u_dist = urgency_distance(ticket["urgency"], pred_urg)
+                if u_dist == 0:
+                    urg_badge = "<span class='badge badge-pass'>EXACT</span>"
+                elif u_dist == 1:
+                    urg_badge = "<span class='badge badge-pass'>±1 CLOSE</span>"
+                else:
+                    urg_badge = "<span class='badge badge-fail'>SEVERE MISS</span>"
+                e2.markdown(f"**Urgency:** {urg_badge}<br><span class='mono' style='font-size:0.8rem'>{pred_urg}</span>", unsafe_allow_html=True)
 
-            # 3. Citation Recall@3
-            retrieved_topics = pred.get("retrieved_doc_topics", [])
-            first_word = ticket["doc_topic"].split()[0].lower()
-            rec_hit = any(first_word in r.lower() for r in retrieved_topics[:3])
-            rec_badge = "<span class='badge badge-pass'>PASS</span>" if rec_hit else "<span class='badge badge-fail'>FAIL</span>"
-            e3.markdown(f"**Doc Recall@3:** {rec_badge}<br><span class='mono' style='font-size:0.75rem'>{ticket['doc_topic'][:20]}...</span>", unsafe_allow_html=True)
+                # 3. Citation Recall@3
+                retrieved_topics = pred.get("retrieved_doc_topics", [])
+                first_word = ticket["doc_topic"].split()[0].lower()
+                rec_hit = any(first_word in r.lower() for r in retrieved_topics[:3])
+                rec_badge = "<span class='badge badge-pass'>PASS</span>" if rec_hit else "<span class='badge badge-fail'>FAIL</span>"
+                e3.markdown(f"**Doc Recall@3:** {rec_badge}<br><span class='mono' style='font-size:0.8rem'>{ticket['doc_topic'][:22]}...</span>", unsafe_allow_html=True)
 
-            # 4. Escalation Decision
-            esc_match = pred.get("escalate") == ticket["escalate"]
-            esc_badge = "<span class='badge badge-pass'>PASS</span>" if esc_match else "<span class='badge badge-fail'>FAIL</span>"
-            decision_text = "ESCALATE" if pred.get("escalate") else "STANDARD"
-            e4.markdown(f"**Escalation:** {esc_badge}<br><span class='mono' style='font-size:0.75rem'>{decision_text}</span>", unsafe_allow_html=True)
-
-            st.divider()
+                # 4. Escalation Decision
+                esc_match = pred.get("escalate") == ticket["escalate"]
+                esc_badge = "<span class='badge badge-pass'>PASS</span>" if esc_match else "<span class='badge badge-fail'>FAIL</span>"
+                decision_text = "ESCALATE" if pred.get("escalate") else "STANDARD"
+                e4.markdown(f"**Escalation:** {esc_badge}<br><span class='mono' style='font-size:0.8rem'>{decision_text}</span>", unsafe_allow_html=True)
 
             # ---------------------------------------------------------
             # 4-Stage Reasoning Trail
@@ -346,78 +335,47 @@ else:
 
             # Stage 1: Triage
             s1 = next((s for s in stages if s.get("stage_index") == 1), None)
-            with st.container():
-                st.markdown(
-                    f"""
-                    <div class="stage-card">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                            <b>Stage 1: Triage Agent</b>
-                            <span class="mono" style="font-size:0.8rem; color:#64748b;">Latency: {s1.get('latency_ms', 0) if s1 else '-'}ms</span>
-                        </div>
-                        <div>Classified Category: <span class="mono"><b>{pred.get('category')}</b></span> | Urgency: <span class="mono"><b>{pred.get('urgency')}</b></span></div>
-                        <div style="margin-top:6px; font-size:0.88rem; color:#334155;"><b>Reasoning:</b> {s1.get('reasoning') if s1 else 'No trace available'}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+            with st.container(border=True):
+                c_title, c_lat = st.columns([3, 1])
+                c_title.markdown("⚡ **Stage 1: Triage Agent**")
+                c_lat.markdown(f"<div style='text-align:right;'><span class='mono' style='font-size:0.8rem; opacity:0.75;'>Latency: {s1.get('latency_ms', 0) if s1 else '-'}ms</span></div>", unsafe_allow_html=True)
+                st.markdown(f"Classified: <span class='mono'><b>{pred.get('category')}</b></span> | Urgency: <span class='mono'><b>{pred.get('urgency')}</b></span>", unsafe_allow_html=True)
+                st.caption(f"**Reasoning:** {s1.get('reasoning') if s1 else 'No trace available'}")
 
             # Stage 2: Retrieval
             s2 = next((s for s in stages if s.get("stage_index") == 2), None)
-            with st.container():
+            with st.container(border=True):
+                c_title, c_lat = st.columns([3, 1])
+                c_title.markdown("🔍 **Stage 2: Retrieval Agent (MCP Tool: `search_docs`)**")
+                c_lat.markdown(f"<div style='text-align:right;'><span class='mono' style='font-size:0.8rem; opacity:0.75;'>Latency: {s2.get('latency_ms', 0) if s2 else '-'}ms</span></div>", unsafe_allow_html=True)
                 passages = (s2.get("output", {}).get("passages", [])) if s2 else []
-                st.markdown(
-                    f"""
-                    <div class="stage-card">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                            <b>Stage 2: Retrieval Agent (MCP Tool: search_docs)</b>
-                            <span class="mono" style="font-size:0.8rem; color:#64748b;">Latency: {s2.get('latency_ms', 0) if s2 else '-'}ms</span>
-                        </div>
-                        <div style="font-size:0.88rem; margin-bottom: 6px;"><b>Retrieved Topics:</b></div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                st.caption(f"Retrieved {len(passages)} documentation topic(s) from curated corpus:")
                 for idx, p in enumerate(passages, 1):
                     with st.expander(f"#{idx} {p.get('doc_topic')} (Score: {p.get('score', '-')})", expanded=(idx == 1)):
-                        st.markdown(f"**Source URL:** [{p.get('source')}]({p.get('source')})")
-                        st.caption(p.get("snippet"))
+                        st.markdown(f"**Attribution:** [{p.get('source')}]({p.get('source')})")
+                        st.write(p.get("snippet"))
 
             # Stage 3: Drafting
             s3 = next((s for s in stages if s.get("stage_index") == 3), None)
-            with st.container():
+            with st.container(border=True):
+                c_title, c_lat = st.columns([3, 1])
+                c_title.markdown("✍️ **Stage 3: Drafting Agent (Strict Grounding)**")
+                c_lat.markdown(f"<div style='text-align:right;'><span class='mono' style='font-size:0.8rem; opacity:0.75;'>Latency: {s3.get('latency_ms', 0) if s3 else '-'}ms</span></div>", unsafe_allow_html=True)
                 draft_text = pred.get("draft_reply") or (s3.get("output", {}).get("draft_reply", "")) if s3 else ""
-                st.markdown(
-                    f"""
-                    <div class="stage-card">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                            <b>Stage 3: Drafting Agent (Strict Grounding)</b>
-                            <span class="mono" style="font-size:0.8rem; color:#64748b;">Latency: {s3.get('latency_ms', 0) if s3 else '-'}ms</span>
-                        </div>
-                        <div style="font-size:0.88rem; color:#334155; margin-bottom: 8px;"><b>Reasoning:</b> {s3.get('reasoning') if s3 else '-'}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
-                st.text_area("Generated Grounded Reply", value=draft_text, height=180)
+                st.caption(f"**Reasoning:** {s3.get('reasoning') if s3 else '-'}")
+                st.text_area("Generated Grounded Reply", value=draft_text, height=160, key=f"draft_{selected_tid}")
 
             # Stage 4: Escalation
             s4 = next((s for s in stages if s.get("stage_index") == 4), None)
-            with st.container():
+            with st.container(border=True):
+                c_title, c_lat = st.columns([3, 1])
+                c_title.markdown("🚨 **Stage 4: Escalation Agent (Recall Biased)**")
+                c_lat.markdown(f"<div style='text-align:right;'><span class='mono' style='font-size:0.8rem; opacity:0.75;'>Latency: {s4.get('latency_ms', 0) if s4 else '-'}ms</span></div>", unsafe_allow_html=True)
                 is_esc = pred.get("escalate", False)
-                esc_badge = "<span class='badge badge-escalated'>HUMAN ESCALATION REQUIRED</span>" if is_esc else "<span class='badge badge-pass'>RESOLVED WITHOUT ESCALATION</span>"
-                st.markdown(
-                    f"""
-                    <div class="stage-card">
-                        <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
-                            <b>Stage 4: Escalation Agent (Recall Biased)</b>
-                            <span class="mono" style="font-size:0.8rem; color:#64748b;">Latency: {s4.get('latency_ms', 0) if s4 else '-'}ms</span>
-                        </div>
-                        <div style="margin-bottom:6px;">Decision: {esc_badge}</div>
-                        <div style="font-size:0.88rem; color:#334155;"><b>Stated Reason:</b> {pred.get('escalation_reason', '-')}</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+                if is_esc:
+                    st.error(f"**Decision: HUMAN ESCALATION REQUIRED**\n\n**Reason:** {pred.get('escalation_reason', '-')}")
+                else:
+                    st.success(f"**Decision: RESOLVED WITHOUT ESCALATION**\n\n**Reason:** {pred.get('escalation_reason', '-')}")
 
             # Rerun Action Button
             st.divider()
